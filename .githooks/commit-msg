@@ -1,0 +1,10 @@
+#!/bin/sh
+# commit-msg hook: reject AI attribution trailers (team rule: no Co-Authored-By).
+# Git for Windows runs this with its bundled sh, so it works from PowerShell too.
+# Enable once per clone:  git config core.hooksPath .githooks
+if grep -qiE '^(Co-Authored-By|Claude-Session):' "$1"; then
+  echo "commit-msg: AI attribution trailer found. Remove it and commit again." >&2
+  grep -niE '^(Co-Authored-By|Claude-Session):' "$1" >&2
+  exit 1
+fi
+exit 0

@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+node_modules/
+.env
+.env.local
+secrets/
+out/
+.vscode/
+.idea/
+Thumbs.db
+.claude/settings.local.json
+CLAUDE.local.md

@@ -1,0 +1,9 @@
+# One pattern per line: gitattributes does NOT expand {a,b} braces.
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+*.png binary
+*.jpg binary
+*.pdf binary
+*.zip binary
