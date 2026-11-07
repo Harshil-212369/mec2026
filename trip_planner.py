@@ -37,7 +37,7 @@ def plan_trip(graph, start_node, supplier_node, stops, vehicle):
 
     # --- 1. checks that don't depend on the route ---------------------------
     total_servings = sum(s["servings"] for s in stops)
-    if total_servings > int(vehicle["capacity"]):                                  # TODO: more food than the truck holds?
+    if total_servings > int(vehicle["capacity"]):                                  #  more food than the truck holds?
         return R.Unavailable(
             C.NO_SUITABLE_VEHICLE,
             f"{vehicle['id']} holds {vehicle['capacity']} servings; "
@@ -46,7 +46,7 @@ def plan_trip(graph, start_node, supplier_node, stops, vehicle):
         )
 
     needs_cold = any(s["refrigerated"] for s in stops)
-    if needs_cold and not bool(vehicle["refrigerated"]) :                                  # TODO: cold food but truck isn't a reefer?
+    if needs_cold and not bool(vehicle["refrigerated"]) :                                  #  cold food but truck isn't a reefer?
         return R.Unavailable(
             C.NO_SUITABLE_VEHICLE,
             f"{vehicle['id']} is not refrigerated; a stop needs cold food",
@@ -83,7 +83,7 @@ def plan_trip(graph, start_node, supplier_node, stops, vehicle):
 
             eta = R.planned_eta_minutes(travel, stops=k)   # includes unloading + buffer
             etas[stop["id"]] = eta
-            late = eta - stop["deadline_min"]                   # TODO: minutes after the deadline (negative = early)
+            late = eta - stop["deadline_min"]                   #  minutes after the deadline (negative = early)
             worst_late = max(worst_late, late)
 
         if not reachable:
@@ -92,11 +92,11 @@ def plan_trip(graph, start_node, supplier_node, stops, vehicle):
         ids = [s["id"] for s in order]
         if worst_late <= 0:
             # every stop on time: keep it if it's the fastest so far
-            if best is None or travel < best.total_minutes:                      # TODO: no best yet, OR this trip is faster
+            if best is None or travel < best.total_minutes:                      #  no best yet, OR this trip is faster
                 best = Trip(ids, legs, etas, travel, sum(l.km for l in legs))
         else:
             # some stop is late: remember the least-late order for the explanation
-            if closest_miss is None or worst_late < closest_miss[1]:                      # TODO: no miss yet, OR this one is less late
+            if closest_miss is None or worst_late < closest_miss[1]:                      #  no miss yet, OR this one is less late
                 closest_miss = (ids, worst_late)
 
     # --- 4. answer -----------------------------------------------------------

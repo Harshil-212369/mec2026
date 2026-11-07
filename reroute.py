@@ -42,9 +42,9 @@ def plan_remaining(graph, current_node, stops):
             )
         nodes += leg.nodes[1:]        # skip the first node: it's already the last one we added
         edges += leg.edges
-        minutes += leg.minutes               # TODO: add this leg's driving time
+        minutes += leg.minutes               # add this leg's driving time
         km += leg.km
-        here = stop_node                   # TODO: the next leg starts where this one ended
+        here = stop_node                   # the next leg starts where this one ended
 
     return R.Route(nodes, edges, minutes, km)
 
@@ -55,7 +55,7 @@ def handle_road_closed(graph, active_trips, edge_id):
     R.close_road(graph, edge_id)
     results = {}
     for trip in active_trips:
-        if edge_id not in trip["edges"]:                      # TODO: this trip's remaining edges don't use the closed road. if closed road is not on this list then continue, else reroute
+        if edge_id not in trip["edges"]:                      # this trip's remaining edges don't use the closed road. if closed road is not on this list then continue, else reroute
             continue                  # not affected: leave it alone
         results[trip["id"]] = plan_remaining(graph, trip["current_node"], trip["stops"])
     return results
