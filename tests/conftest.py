@@ -2,7 +2,7 @@
 R1 crisis submission/validation, R2 priority scoring, R3 heap priority queue, R4 route planning,
 R5 greedy resource matching, R6 state machine, R7 event bus, R8 same code on any dataset/source.
 
-networkx is used ONLY here, as a stand-in route_fn until Jagan's Dijkstra/A* lands
+networkx is used ONLY in tests, as an independent reference to check routes against
 (the engine itself must not use a library shortest path).
 
 AI-assisted: Claude Code (Anthropic, Claude Opus 5.5), reviewed/modified by Harshil.
@@ -10,6 +10,7 @@ AI-assisted: Claude Code (Anthropic, Claude Opus 5.5), reviewed/modified by Hars
 from __future__ import annotations
 
 import copy
+import sys
 from pathlib import Path
 
 import networkx as nx
@@ -18,6 +19,7 @@ import pytest
 from core.tables import from_json, from_pg_dump, select_dataset
 
 REPO = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(REPO))  # from j/routing: top-level modules (routing.py, ...) importable
 DATA = REPO / "data"
 AADIL_DUMP = REPO / "tests" / "fixtures" / "aadil_dump_2026-11-07.sql"
 
