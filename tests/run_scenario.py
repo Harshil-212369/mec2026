@@ -1,7 +1,5 @@
-"""DEV ONLY: run a scenario through the engine and print the timeline.
-
-Uses networkx as a stand-in router until Jagan's Dijkstra/A* is merged, so it lives in tests/
-and must not be part of the demo path.
+"""Run a scenario through the engine and print the timeline (uses the production router:
+Jagan's A* via core/graph.py).
 
   .venv\\Scripts\\python -m tests.run_scenario data/toronto-downtown.json data/scenario-toronto.json
   .venv\\Scripts\\python -m tests.run_scenario data/synthetic-town-on.json data/scenario-town.json
@@ -15,13 +13,12 @@ import argparse
 
 from core.engine import Engine
 from core.tables import from_json, from_pg_dump
-from tests.conftest import make_route_fn
+from core.routing import get_router_factory
 
 QUIET = {"vehicle-moved", "priority-changed", "ticket-status"}
 
 
-def router(nodes, roads):
-    return make_route_fn(roads)
+router, ROUTER_NAME = get_router_factory()
 
 
 def main(argv: list[str] | None = None) -> int:

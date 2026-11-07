@@ -28,6 +28,34 @@ def test_r4_fallback_dijkstra_matches_networkx_on_every_pair(ds):
             assert r["path"][0] == a and r["path"][-1] == b and len(r["edges"]) == len(r["path"]) - 1
 
 
+@pytest.mark.parametrize("ds", ["toronto-downtown.json", "synthetic-town-on.json", "synthetic-town-intl.json"])
+@pytest.mark.parametrize("closed", [set(), {24, 26}, {6, 9, 12}])
+def test_r4_production_router_jagan_astar_matches_networkx(ds, closed):
+    from core.routing import get_router_factory
+    factory, name = get_router_factory()
+    assert "Jagan" in name                                     # the merged routing.py is in use
+    _, t = select_dataset(from_json(DATA / ds))
+    for r in t["roads"]:
+        r["is_closed"] = r["road_id"] in closed
+    g = nx.Graph()
+    g.add_nodes_from(n["node_id"] for n in t["nodes"])
+    for r in t["roads"]:
+        if not r["is_closed"]:
+            g.add_edge(r["node_a"], r["node_b"], weight=r["weight"])
+    truth = dict(nx.all_pairs_dijkstra_path_length(g, weight="weight"))
+    route = factory(t["nodes"], t["roads"])
+    roads = {r["road_id"]: r for r in t["roads"]}
+    for a in g.nodes:
+        for b in g.nodes:
+            r = route(a, b)
+            if b not in truth[a]:
+                assert r is None, (a, b)
+                continue
+            assert math.isclose(r["minutes"], truth[a][b], abs_tol=1e-9), (ds, closed, a, b)
+            assert not set(r["edges"]) & closed
+            assert math.isclose(sum(roads[e]["distance_km"] for e in r["edges"]), r["km"], abs_tol=1e-9)
+
+
 def test_r4_fallback_respects_closed_bridge():
     _, t = select_dataset(from_json(DATA / "synthetic-town-on.json"))
     for r in t["roads"]:

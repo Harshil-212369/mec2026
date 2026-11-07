@@ -21,4 +21,4 @@ def get_router_factory():
         return router_factory, "core.router_fallback (Dijkstra on our MinHeap)"
     if not hasattr(graph, "router_factory"):
         raise ImportError("core/graph.py must define router_factory(nodes, roads) -> route_fn")
-    return graph.router_factory, "core.graph"
+    return graph.router_factory, "core.graph -> routing.py A* (Jagan)"

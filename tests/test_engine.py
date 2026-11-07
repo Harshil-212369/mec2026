@@ -1,18 +1,17 @@
 """Engine loop: R4 closures/rerouting, R5 no double booking, R6 state machine under
 disruptions, R7 events, R8 same engine on Toronto, the town and Aadil's database.
-Router = networkx stand-in until Jagan's Dijkstra lands.
+Router = the production one (Jagan's A*), so these tests cover the integrated system.
 
 AI-assisted: Claude Code (Anthropic, Claude Opus 5.5), reviewed/modified by Harshil."""
 from datetime import timedelta
 
 from core.engine import Engine
+from core.routing import get_router_factory
 from core.state import TRANSITIONS
 from core.tables import from_json, from_pg_dump
-from tests.conftest import AADIL_DUMP, DATA, make_route_fn
+from tests.conftest import AADIL_DUMP, DATA
 
-
-def router(nodes, roads):
-    return make_route_fn(roads)
+router, ROUTER_NAME = get_router_factory()   # the production router (Jagan's A* via core/graph.py)
 
 
 def _engine(dataset, scenario=None):
