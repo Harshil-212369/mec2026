@@ -1,0 +1,117 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Food Crisis Response System</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+    
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+
+<body>
+    <header>
+        <h1>Operations Dashboard</h1>
+        <p>Emergency Food Distribution Management</p>
+
+        <nav>
+            <a href="/">Home</a>
+            <a href="/operations">Operations</a>
+            <a href="/requester">Requester Portal</a>
+            <a href="{{ url_for('logout') }}"
+            class="logout-link">
+            Logout
+            </a>
+        </nav>
+    </header>
+
+    <main>
+        <h2>System Overview</h2>
+
+        <section class="map-section">
+            <h2>Emergency Dispatch Map</h2>
+            <div id="map"></div>
+            <div class="map-legend">
+                <span>🔵 Suppliers</span>
+                <span>🔴 Requesters</span>
+                <span>⚫ Road Network</span>
+            </div>
+        </section>
+
+            
+        <section class="dispatch-section">
+
+            <h2>Emergency Dispatch</h2>
+
+            <p>
+                Prioritize pending emergencies and assign
+                available food supplies and delivery vehicles.
+            </p>
+
+            <button id="dispatchBtn" type="button">
+                Calculate Priority & Dispatch
+            </button>
+
+            <p id="dispatchMessage" role="status"></p>
+
+        </section>
+
+
+        <section class="dataset-panel">
+            <h2>Region Management</h2>
+
+            <p>
+                Active region:
+                <strong id="activeRegionName">Loading...</strong>
+            </p>
+
+            <label for="datasetSelect">Select Region</label>
+            <select id="datasetSelect"></select>
+
+            <hr>
+
+            <h3>Import New Region</h3>
+
+            <form id="datasetUploadForm"
+                enctype="multipart/form-data">
+
+                <label for="datasetFile">
+                    Select JSON dataset
+                </label>
+
+                <input
+                    type="file"
+                    id="datasetFile"
+                    name="file"
+                    accept=".json,application/json"
+                    required
+                >
+
+                <label class="checkbox-label">
+                    <input
+                        type="checkbox"
+                        id="activateOnImport"
+                        checked
+                    >
+                    Activate region after import
+                </label>
+
+                <button type="submit" id="uploadDatasetBtn">
+                    Import Dataset
+                </button>
+            </form>
+
+            <p id="datasetMessage" role="status"></p>
+        </section>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

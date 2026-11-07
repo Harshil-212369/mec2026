@@ -1,0 +1,72 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Food Crisis Response System</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="landing-page">
+
+    <div class="landing-container">
+
+        <h1>Urban Food Crisis Response System</h1>
+        <p>
+            Emergency food distribution and
+            transportation management
+        </p>
+
+        <h2>Select Your Role</h2>
+
+        <div class="role-container">
+
+            <a href="{{ url_for('login', role='operations') }}"
+                class="role-card operations-card">
+
+                <div class="role-icon">🚚</div>
+
+                <h3>Operations</h3>
+
+                <p>
+                    Manage emergency requests,
+                    available resources,
+                    road closures and deliveries.
+                </p>
+
+                <span class="role-button">
+                    Operations Dashboard
+                </span>
+
+            </a>
+
+            <a href="{{ url_for('login', role='requester') }}"
+                class="role-card requester-card">
+
+                <div class="role-icon">📋</div>
+
+                <h3>Requester</h3>
+
+                <p>
+                    Submit emergency food
+                    requests and monitor
+                    delivery progress.
+                </p>
+
+                <span class="role-button">
+                    Requester Portal
+                </span>
+
+            </a>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

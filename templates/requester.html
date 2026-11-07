@@ -1,0 +1,90 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Emergency Food Request</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <header>
+        <h1>Requester Portal</h1>
+        <p>Emergency Food Request Submission</p>
+
+        <nav>
+            <a href="/">Home</a>
+            <a href="/requester">New Request</a>
+            <a href="/operations">Operations</a>
+            <a href="{{ url_for('logout') }}"
+            class="logout-link">
+            Logout
+            </a>
+        </nav>
+
+    </header>
+
+    <main class="request-container">
+
+        <h2>Create Emergency Ticket</h2>
+
+        <form id="ticketForm">
+
+            <label for="req_id">Requesting location</label>
+            <select id="req_id" required>
+                <option value="">Loading locations...</option>
+            </select>
+
+            <label for="servings">
+                Servings requested
+            </label>
+            <input type="number"
+                   id="servings"
+                   min="1"
+                   step="1"
+                   required>
+
+            <label for="people">
+                People affected
+            </label>
+            <input type="number"
+                   id="people"
+                   min="1"
+                   step="1"
+                   required>
+
+            <label class="checkbox-label">
+                <input type="checkbox" id="refrigerated">
+                Refrigerated transport required
+            </label>
+
+            <label for="deadline">
+                Delivery deadline
+            </label>
+            <input type="datetime-local"
+                   id="deadline"
+                   required>
+
+            <button type="submit" id="submitBtn">
+                Submit Emergency Request
+            </button>
+
+        </form>
+
+        <p id="formMessage" role="status"
+           aria-live="polite"></p>
+
+        <a href="/">Back to dispatch dashboard</a>
+
+    </main>
+
+    <script src="{{ url_for('static',
+                           filename='requester.js') }}">
+    </script>
+</body>
+</html>
