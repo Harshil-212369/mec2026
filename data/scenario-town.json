@@ -1,0 +1,83 @@
+{
+  "dataset_id": "synthetic-town-on",
+  "_about": "Test scenario (synthetic) for the open-town datasets (same ids in -on and -intl).",
+  "tickets": [
+    {
+      "req_id": "P3",
+      "crisis_type": "flood",
+      "servings_requested": 60,
+      "people_affected": 45,
+      "severity": 5,
+      "refrigerated": false,
+      "submit_min": 0,
+      "deadline_min": 40,
+      "_tests": "bridge-only shelter"
+    },
+    {
+      "req_id": "P2",
+      "crisis_type": "food_shortage",
+      "servings_requested": 35,
+      "people_affected": 30,
+      "severity": 4,
+      "refrigerated": true,
+      "submit_min": 0,
+      "deadline_min": 30,
+      "_tests": "cold > reefer capacity 30, only 40 cold in whole town"
+    },
+    {
+      "req_id": "P4",
+      "crisis_type": "food_shortage",
+      "servings_requested": 45,
+      "people_affected": 40,
+      "severity": 3,
+      "refrigerated": false,
+      "submit_min": 1,
+      "deadline_min": 60
+    },
+    {
+      "req_id": "P5",
+      "crisis_type": "food_shortage",
+      "servings_requested": 50,
+      "people_affected": 60,
+      "severity": 4,
+      "refrigerated": false,
+      "submit_min": 1,
+      "deadline_min": 25,
+      "_tests": "far site: deadline infeasible -> serve anyway, flag Delayed"
+    },
+    {
+      "req_id": "P6",
+      "crisis_type": "food_shortage",
+      "servings_requested": 30,
+      "people_affected": 20,
+      "severity": 2,
+      "refrigerated": false,
+      "submit_min": 3,
+      "deadline_min": 180
+    }
+  ],
+  "events": [
+    {
+      "t_min": 2,
+      "type": "road_closed",
+      "edge_id": 24,
+      "_note": "Old Mill Bridge -> P3 unreachable -> Failed/Delayed with reason"
+    },
+    {
+      "t_min": 4,
+      "type": "road_closed",
+      "edge_id": 26,
+      "_note": "look up by street name; forces reroute to P4"
+    },
+    {
+      "t_min": 6,
+      "type": "vehicle_breakdown",
+      "vehicle_id": "V3"
+    },
+    {
+      "t_min": 30,
+      "type": "road_reopened",
+      "edge_id": 24
+    }
+  ]
+}

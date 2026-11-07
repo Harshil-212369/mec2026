@@ -1,0 +1,171 @@
+{
+  "dataset_id": "toronto-downtown",
+  "_about": "Test scenario (synthetic). submit_min/deadline_min are minutes from sim start. Edge ids from toronto-downtown.json.",
+  "tickets": [
+    {
+      "req_id": "P4",
+      "crisis_type": "food_shortage",
+      "servings_requested": 150,
+      "people_affected": 120,
+      "severity": 5,
+      "refrigerated": false,
+      "submit_min": 0,
+      "deadline_min": 60
+    },
+    {
+      "req_id": "P3",
+      "crisis_type": "food_shortage",
+      "servings_requested": 70,
+      "people_affected": 60,
+      "severity": 4,
+      "refrigerated": true,
+      "submit_min": 0,
+      "deadline_min": 45,
+      "_tests": "cold > one reefer (40) -> split across reefers"
+    },
+    {
+      "req_id": "P5",
+      "crisis_type": "food_shortage",
+      "servings_requested": 80,
+      "people_affected": 80,
+      "severity": 3,
+      "refrigerated": false,
+      "submit_min": 2,
+      "deadline_min": 90
+    },
+    {
+      "req_id": "P6",
+      "crisis_type": "food_shortage",
+      "servings_requested": 40,
+      "people_affected": 30,
+      "severity": 2,
+      "refrigerated": false,
+      "submit_min": 2,
+      "deadline_min": 240,
+      "_tests": "low priority -> aging must eventually serve it"
+    },
+    {
+      "req_id": "P5",
+      "crisis_type": "food_shortage",
+      "servings_requested": 40,
+      "people_affected": 30,
+      "severity": 2,
+      "refrigerated": false,
+      "submit_min": 2,
+      "deadline_min": 240,
+      "_tests": "identical score to previous -> tie-break"
+    },
+    {
+      "req_id": "P3",
+      "crisis_type": "food_shortage",
+      "servings_requested": 250,
+      "people_affected": 200,
+      "severity": 5,
+      "refrigerated": true,
+      "submit_min": 15,
+      "deadline_min": 90,
+      "_tests": "total cold stock exhausted -> partial + resource-depleted"
+    }
+  ],
+  "events": [
+    {
+      "t_min": 5,
+      "type": "road_closed",
+      "edge_id": 9,
+      "_note": "Yonge St Front->King"
+    },
+    {
+      "t_min": 5,
+      "type": "road_closed",
+      "edge_id": 6,
+      "_note": "Front St Bay->Yonge: P5 now reached via other streets"
+    },
+    {
+      "t_min": 8,
+      "type": "vehicle_breakdown",
+      "vehicle_id": "V2"
+    },
+    {
+      "t_min": 20,
+      "type": "road_reopened",
+      "edge_id": 9
+    },
+    {
+      "t_min": 25,
+      "type": "stock_change",
+      "supp_id": "P2",
+      "normal_delta": -200,
+      "cold_delta": 0
+    }
+  ],
+  "invalid_tickets": [
+    {
+      "req_id": "P4",
+      "servings_requested": 10,
+      "people_affected": 5,
+      "severity": 7,
+      "refrigerated": false,
+      "submit_min": 0,
+      "deadline_min": 30,
+      "_expect": "severity out of 1..5"
+    },
+    {
+      "req_id": "P4",
+      "servings_requested": 10,
+      "people_affected": 0,
+      "severity": 3,
+      "refrigerated": false,
+      "submit_min": 0,
+      "deadline_min": 30,
+      "_expect": "people_affected must be > 0"
+    },
+    {
+      "req_id": "P4",
+      "servings_requested": -5,
+      "people_affected": 5,
+      "severity": 3,
+      "refrigerated": false,
+      "submit_min": 0,
+      "deadline_min": 30,
+      "_expect": "servings must be > 0"
+    },
+    {
+      "req_id": "P4",
+      "servings_requested": 10,
+      "people_affected": 5,
+      "severity": 3,
+      "refrigerated": false,
+      "submit_min": 30,
+      "deadline_min": 10,
+      "_expect": "deadline before submission"
+    },
+    {
+      "req_id": "P99",
+      "servings_requested": 10,
+      "people_affected": 5,
+      "severity": 3,
+      "refrigerated": false,
+      "submit_min": 0,
+      "deadline_min": 30,
+      "_expect": "unknown location"
+    },
+    {
+      "req_id": "P4",
+      "servings_requested": 10,
+      "people_affected": 5,
+      "severity": 3,
+      "refrigerated": "maybe",
+      "submit_min": 0,
+      "deadline_min": 30,
+      "_expect": "refrigerated must be boolean"
+    },
+    {
+      "req_id": "P4",
+      "servings_requested": 10,
+      "people_affected": 5,
+      "refrigerated": false,
+      "submit_min": 0,
+      "_expect": "missing severity, deadline"
+    }
+  ]
+}
