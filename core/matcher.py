@@ -5,7 +5,7 @@ For one ticket, repeat until it is covered or nothing fits:
   2. vehicles that are Available, refrigerated if the food is cold, and have the fuel to go
      vehicle -> supplier -> requester -> nearest supplier and still keep the reserve
   3. among all (vehicle, supplier) pairs pick the best key:
-       (reefer used for normal food?, eta, -load, vehicle id, supplier id)
+       (reefer used for normal food?, eta, hub rather than a broken truck's cargo?, -load, ids)
      so normal food uses ordinary trucks first and reefers stay free for cold requests;
      eta = drive to supplier + load + drive to requester + unload
   4. load = min(servings still needed, truck capacity, supplier free stock); reserve the stock
@@ -55,7 +55,7 @@ class MatchResult:
     depleted: bool = False      # stopped because stock ran out -> publish resource-depleted
 
 
-def _free(supplier: dict, cold: bool) -> int:
+def free_stock(supplier: dict, cold: bool) -> int:
     if cold:
         return supplier["cold_stock"] - supplier["reserved_cold"]
     return supplier["normal_stock"] - supplier["reserved_normal"]
@@ -88,7 +88,7 @@ def assign(ticket: dict, req_node: int, servings_remaining: int, suppliers: list
 
     result = MatchResult(remaining=servings_remaining)
     while result.remaining > 0:
-        stocked = [s for s in suppliers if _free(s, cold) > 0]
+        stocked = [s for s in suppliers if free_stock(s, cold) > 0]
         fleet = [v for v in vehicles if v["status"] == "Available" and (v["refrigerated"] or not cold)]
         if not stocked:
             result.reason, result.depleted = f"no {kind} stock left at any supplier", True
@@ -109,9 +109,10 @@ def assign(ticket: dict, req_node: int, servings_remaining: int, suppliers: list
                 if v["fuel"] - need < FUEL_RESERVE_PCT:
                     saw_low_fuel = True
                     continue
-                load = min(result.remaining, v["capacity"], _free(s, cold))
+                load = min(result.remaining, v["capacity"], free_stock(s, cold))
                 eta = r1["minutes"] + LOAD_MIN + r2["minutes"] + UNLOAD_MIN
-                key = (bool(v["refrigerated"]) and not cold, eta, -load,
+                # at equal ETA, empty a stranded load (broken truck's cargo) before touching a hub
+                key = (bool(v["refrigerated"]) and not cold, eta, not s.get("temporary", False), -load,
                        _natural(v["vehicle_id"]), _natural(s["supp_id"]))
                 if best is None or key < best[0]:
                     best = (key, v, s, r1, r2, load, eta)

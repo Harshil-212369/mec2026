@@ -20,7 +20,7 @@ REQUIRED_EVENTS = (
     "road-closed", "vehicle-breakdown", "crisis-resolved",
 )
 # Ours: extra events the dashboard needs.
-EXTRA_EVENTS = ("road-reopened", "vehicle-repaired", "vehicle-moved", "ticket-status", "delivery-assigned")
+EXTRA_EVENTS = ("road-reopened", "vehicle-repaired", "vehicle-moved", "ticket-status", "stock-changed")
 EVENTS = REQUIRED_EVENTS + EXTRA_EVENTS
 
 # Statement 3.1 "Crisis submission" lists severity level; range 1..5 from the original schema
@@ -53,3 +53,8 @@ FUEL_PCT_PER_KM = {False: 0.25, True: 0.30}   # truck 25 L/100 km, reefer 30 L/1
 FUEL_RESERVE_PCT = 15.0                         # never plan a trip that ends below 15 %
 LOAD_MIN = 10.0     # loading at the supplier
 UNLOAD_MIN = 10.0   # unloading at the requester
+
+# ------------------------------------------------------------ engine (ours) ----
+# Statement 3.1 "Route planning": clearly indicate when a route is unavailable. A ticket with
+# no route stays Delayed (it may reopen) and becomes Failed only this long after its deadline.
+FAIL_GRACE_MIN = 60.0
