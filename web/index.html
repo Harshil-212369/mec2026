@@ -1,0 +1,162 @@
+<!doctype html>
+<!-- Live dispatch dashboard. AI-assisted: Claude Code (Anthropic, Claude Opus 5.5), reviewed/modified by Harshil.
+     Map: Leaflet 1.9.4 (BSD-2) + OpenStreetMap tiles (c) OpenStreetMap contributors (ODbL). Works without them offline. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crisis Dispatch Engine</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root { --hi:#c62828; --mid:#7e57c2; --lo:#1565c0; --ink:#1b1b1b; --muted:#666; --bg:#f6f7f9; --card:#fff; }
+  body { font: 14px system-ui, sans-serif; margin: 0; background: var(--bg); color: var(--ink); }
+  header { background: #13294b; color: #fff; padding: 10px 16px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  header b { font-size: 16px; margin-right: auto; }
+  button, select, input { font: inherit; padding: 4px 8px; }
+  .rand { background: var(--hi); color: #fff; border: 0; border-radius: 4px; font-weight: 600; }
+  main { display: grid; grid-template-columns: 1.4fr 1fr; gap: 12px; padding: 12px 16px; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+  section { background: var(--card); border-radius: 8px; padding: 10px 12px; box-shadow: 0 1px 2px #0002; min-width: 0; }
+  .wide { grid-column: 1 / -1; }
+  #map { height: 430px; border-radius: 6px; background: #e8eaed; display: flex; align-items: center; justify-content: center; color: var(--muted); }
+  .legend span { display: inline-block; margin-right: 14px; }
+  .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; margin-right: 4px; }
+  h2 { font-size: 14px; margin: 0 0 8px; }
+  table { width: 100%; border-collapse: collapse; }
+  td, th { padding: 4px 6px; border-bottom: 1px solid #eee; text-align: left; vertical-align: top; }
+  .bar { display: flex; height: 10px; width: 160px; background: #eee; border-radius: 3px; overflow: hidden; }
+  .bar span:nth-child(odd) { background: var(--hi); } .bar span:nth-child(even) { background: var(--lo); }
+  #feed { height: 360px; overflow: auto; font: 12px ui-monospace, monospace; }
+  #feed div { border-bottom: 1px solid #f0f0f0; padding: 2px 0; }
+  .muted { color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <b>Crisis Dispatch Engine</b>
+  <select id="dataset" onchange="loadDataset(this.value)">
+    <option value="">Dataset&hellip;</option>
+    <option value="toronto">Toronto + scenario</option>
+    <option value="town">Synthetic town + scenario</option>
+  </select>
+  <button class="rand" onclick="randomCity()" title="Generate a random city with the same structure as the Toronto data: roads, hubs, trucks, requests and disruptions. No input file.">&#127922; Random city</button>
+  <button onclick="post('/sim/start',{speed:+speed.value})">&#9654; Start</button>
+  <button onclick="post('/sim/pause')">&#10074;&#10074; Pause</button>
+  <button onclick="post('/sim/step',{minutes:5})">+5 min</button>
+  <label>Speed <input id="speed" type="number" value="2" min="1" max="60" style="width:4em"></label>
+  <select id="policy" onchange="post('/policy',{preset:this.value})">
+    <option>balanced</option><option>deadline_first</option><option>max_people</option><option>equity</option>
+  </select>
+  <input id="road" placeholder="road id (click map)" style="width:9em"><button onclick="post('/roads/'+road.value+'/close')">Close road</button>
+  <button onclick="post('/roads/'+road.value+'/reopen')">Reopen</button>
+  <input id="veh" placeholder="vehicle" style="width:6em"><button onclick="post('/vehicles/'+veh.value+'/breakdown')">Breakdown</button>
+</header>
+<main>
+  <section class="wide">
+    <h2 id="clock" class="muted"></h2>
+    <div id="map">Loading map&hellip;</div>
+    <p class="legend muted">
+      <span><span class="dot" style="background:var(--hi)"></span>high priority request</span>
+      <span><span class="dot" style="background:var(--mid)"></span>medium</span>
+      <span><span class="dot" style="background:var(--lo)"></span>low / served</span>
+      <span>&#9632; food hub</span><span>&#9679; small dark = truck</span>
+      <span>thick blue line = active route</span><span>red dashed = closed road (click a road to select it)</span>
+    </p>
+  </section>
+  <section><h2>Crisis queue (highest priority first) &mdash; bar = why this rank (S P F C D W)</h2>
+    <table><thead><tr><th>#</th><th>Ticket</th><th>Site</th><th>Status</th><th>Score</th><th>Why</th><th>Delivered</th><th>Flags</th></tr></thead>
+    <tbody id="queue"></tbody></table>
+    <h2 style="margin-top:12px">Vehicles</h2><table><tbody id="vehicles"></tbody></table>
+    <h2 style="margin-top:12px">Suppliers (stock / reserved)</h2><table><tbody id="suppliers"></tbody></table>
+  </section>
+  <section><h2>Live events (WebSocket)</h2><div id="feed"></div><p id="err" class="muted"></p></section>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+let map = null, layer = null, fittedFor = null;
+if (window.L) {
+  $('map').textContent = '';
+  map = L.map('map');
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+              {maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'}).addTo(map);
+  layer = L.layerGroup().addTo(map);
+} else {
+  $('map').textContent = 'Map not available offline (Leaflet could not load). Everything else works.';
+}
+async function post(url, body) {
+  const r = await fetch(url, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body || {})});
+  $('err').textContent = r.ok ? '' : url + ': ' + (await r.text());
+  await refresh();
+  return r;
+}
+async function randomCity() { $('feed').innerHTML = ''; await post('/datasets/random', {}); }
+async function loadDataset(v) {
+  const specs = {toronto: {source: 'json', path: 'data/toronto-downtown.json', scenario: 'data/scenario-toronto.json'},
+                 town: {source: 'json', path: 'data/synthetic-town-on.json', scenario: 'data/scenario-town.json'}};
+  if (specs[v]) { $('feed').innerHTML = ''; await post('/datasets/load', specs[v]); }
+}
+function priorityColor(score) { return score >= 60 ? '#c62828' : score >= 40 ? '#7e57c2' : '#1565c0'; }
+function drawMap(s) {
+  if (!map) return;
+  layer.clearLayers();
+  const pos = Object.fromEntries(s.map.nodes.map(n => [n.node_id, [n.lat, n.lng]]));
+  for (const r of s.map.roads) {
+    L.polyline([pos[r.node_a], pos[r.node_b]], {color: r.is_closed ? '#c62828' : (r.is_highway ? '#546e7a' : '#90a4ae'),
+      weight: r.is_closed ? 5 : (r.is_highway ? 5 : 3), dashArray: r.is_closed ? '8 6' : null})
+      .bindTooltip(`road ${r.road_id}: ${r.street || ''}${r.is_closed ? ' (CLOSED)' : ''}`)
+      .on('click', () => { $('road').value = r.road_id; }).addTo(layer);
+  }
+  for (const d of s.deliveries) {
+    if (d.status === 'In Progress' && d.route_nodes.length > 1)
+      L.polyline(d.route_nodes.map(n => pos[n]), {color: '#1565c0', weight: 6, opacity: 0.45})
+        .bindTooltip(`${d.vehicle_id} -> ticket ${d.ticket_id}, ETA ${d.eta_min} min`).addTo(layer);
+  }
+  const open = s.tickets.filter(t => !['Resolved', 'Failed'].includes(t.status));
+  for (const r of s.map.requesters) {
+    const mine = open.filter(t => t.req_id === r.req_id);
+    const top = Math.max(0, ...mine.map(t => t.priority_score || 0));
+    L.circleMarker(pos[r.location_node], {radius: 9, color: '#fff', weight: 2, fillOpacity: 0.95,
+      fillColor: mine.length ? priorityColor(top) : '#1565c0'})
+      .bindTooltip(`${r.req_id} ${r.name} (${r.category})<br>${mine.length ? `open tickets: ${mine.length}, top score ${top.toFixed(1)}` : 'no open ticket'}`)
+      .addTo(layer);
+  }
+  for (const p of s.suppliers) {
+    const [lat, lng] = pos[p.location_node], d = 0.0006;
+    L.rectangle([[lat - d, lng - d], [lat + d, lng + d]], {color: '#13294b', weight: 2, fillColor: '#1565c0', fillOpacity: 0.9})
+      .bindTooltip(`${p.supp_id} ${p.name}<br>normal ${p.normal_stock} (reserved ${p.reserved_normal}), cold ${p.cold_stock} (reserved ${p.reserved_cold})`)
+      .addTo(layer);
+  }
+  for (const v of s.vehicles) {
+    L.circleMarker(pos[v.current_node], {radius: 4, color: v.status === 'Broken' ? '#c62828' : '#1b1b1b', fillOpacity: 1})
+      .bindTooltip(`${v.vehicle_id} (${v.refrigerated ? 'reefer' : 'truck'}) ${v.status}, fuel ${v.fuel.toFixed(0)}%`).addTo(layer);
+  }
+  if (fittedFor !== s.dataset_id) { map.fitBounds(Object.values(pos), {padding: [20, 20]}); fittedFor = s.dataset_id; }
+}
+async function refresh() {
+  const s = await (await fetch('/state')).json();
+  $('clock').textContent = `${s.dataset_id} | t+${s.sim.elapsed_min.toFixed(0)} min | ${s.sim.running ? 'running' : 'paused'} | closed roads: ${s.closed_roads.join(', ') || 'none'} | router: ${s.sim.router}`;
+  const byId = Object.fromEntries(s.tickets.map(t => [t.ticket_id, t]));
+  const ranked = s.ranking.map(id => byId[id]).concat(s.tickets.filter(t => !s.ranking.includes(t.ticket_id)));
+  $('queue').innerHTML = ranked.map((t, i) => {
+    const b = t.breakdown || {}; const bar = ['S','P','F','C','D','W'].map(k => `<span title="${k} ${(b[k]||0).toFixed(1)}" style="width:${(b[k]||0)*1.6}px"></span>`).join('');
+    return `<tr><td>${s.ranking.includes(t.ticket_id) ? i + 1 : '-'}</td><td>${t.ticket_id}${t.refrigerated ? ' (cold)' : ''}</td><td>${t.req_id}</td><td>${t.status}</td>
+      <td>${t.priority_score?.toFixed(1) ?? ''}</td><td><div class="bar">${bar}</div></td><td>${t.delivered}/${t.servings_requested}</td><td>${t.flags.join(', ')}</td></tr>`;
+  }).join('');
+  $('vehicles').innerHTML = s.vehicles.map(v => `<tr><td>${v.vehicle_id}</td><td>${v.refrigerated ? 'reefer' : 'truck'}</td><td>${v.status}</td><td>node ${v.current_node}</td><td>fuel ${v.fuel.toFixed(0)}%</td></tr>`).join('');
+  $('suppliers').innerHTML = s.suppliers.map(p => `<tr><td>${p.supp_id}</td><td>${p.name}</td><td>normal ${p.normal_stock}/${p.reserved_normal}</td><td>cold ${p.cold_stock}/${p.reserved_cold}</td></tr>`).join('');
+  drawMap(s);
+}
+const ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws');
+ws.onmessage = m => {
+  const e = JSON.parse(m.data);
+  if (e.type === 'vehicle-moved') return;
+  const d = document.createElement('div');
+  d.textContent = `${e.ts.slice(11, 16)} ${e.type} ${JSON.stringify(e.data)}`;
+  $('feed').prepend(d);
+  refresh();
+};
+refresh(); setInterval(refresh, 3000);
+</script>
+</body>
+</html>

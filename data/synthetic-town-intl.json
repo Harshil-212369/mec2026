@@ -1,0 +1,592 @@
+{
+  "id": "synthetic-town-intl",
+  "name": "Synthetic Town (East Africa-like)",
+  "center": [
+    -1.19341,
+    36.9122
+  ],
+  "zoom": 12,
+  "nodes": [
+    {
+      "id": 0,
+      "name": "1st Ave & Mill St",
+      "lat": -1.2,
+      "lng": 36.9
+    },
+    {
+      "id": 1,
+      "name": "2nd Ave & Mill St",
+      "lat": -1.2,
+      "lng": 36.903594
+    },
+    {
+      "id": 2,
+      "name": "3rd Ave & Mill St",
+      "lat": -1.2,
+      "lng": 36.907188
+    },
+    {
+      "id": 3,
+      "name": "4th Ave & Mill St",
+      "lat": -1.2,
+      "lng": 36.910782
+    },
+    {
+      "id": 4,
+      "name": "1st Ave & Main St",
+      "lat": -1.196383,
+      "lng": 36.9
+    },
+    {
+      "id": 5,
+      "name": "2nd Ave & Main St",
+      "lat": -1.196383,
+      "lng": 36.903594
+    },
+    {
+      "id": 6,
+      "name": "3rd Ave & Main St",
+      "lat": -1.196383,
+      "lng": 36.907188
+    },
+    {
+      "id": 7,
+      "name": "4th Ave & Main St",
+      "lat": -1.196383,
+      "lng": 36.910782
+    },
+    {
+      "id": 8,
+      "name": "1st Ave & Church St",
+      "lat": -1.192765,
+      "lng": 36.9
+    },
+    {
+      "id": 9,
+      "name": "2nd Ave & Church St",
+      "lat": -1.192765,
+      "lng": 36.903594
+    },
+    {
+      "id": 10,
+      "name": "3rd Ave & Church St",
+      "lat": -1.192765,
+      "lng": 36.907188
+    },
+    {
+      "id": 11,
+      "name": "4th Ave & Church St",
+      "lat": -1.192765,
+      "lng": 36.910782
+    },
+    {
+      "id": 12,
+      "name": "Hwy 9 km 0",
+      "lat": -1.213566,
+      "lng": 36.792179
+    },
+    {
+      "id": 13,
+      "name": "Hwy 9 km 1",
+      "lat": -1.213566,
+      "lng": 36.855075
+    },
+    {
+      "id": 14,
+      "name": "Hwy 9 km 2",
+      "lat": -1.213566,
+      "lng": 36.905391
+    },
+    {
+      "id": 15,
+      "name": "Hwy 9 km 3",
+      "lat": -1.213566,
+      "lng": 36.95391
+    },
+    {
+      "id": 16,
+      "name": "Hwy 9 km 4",
+      "lat": -1.213566,
+      "lng": 37.025791
+    },
+    {
+      "id": 17,
+      "name": "Riverside Rd & Bridge (east bank)",
+      "lat": -1.189148,
+      "lng": 36.926955
+    },
+    {
+      "id": 18,
+      "name": "Riverside Village Centre",
+      "lat": -1.18553,
+      "lng": 36.940433
+    },
+    {
+      "id": 19,
+      "name": "Riverside School Rd",
+      "lat": -1.178295,
+      "lng": 36.943128
+    },
+    {
+      "id": 20,
+      "name": "Lakeview Hamlet",
+      "lat": -1.145738,
+      "lng": 36.88203
+    },
+    {
+      "id": 21,
+      "name": "Concession 4 & Sideroad 10",
+      "lat": -1.163825,
+      "lng": 36.895507
+    },
+    {
+      "id": 22,
+      "name": "Lake Rd & Hwy 9 West",
+      "lat": -1.172869,
+      "lng": 36.84609
+    },
+    {
+      "id": 23,
+      "name": "Eastfield Crossroads",
+      "lat": -1.181913,
+      "lng": 37.061731
+    }
+  ],
+  "edges": [
+    {
+      "id": 0,
+      "a": 0,
+      "b": 1,
+      "km": 0.3995,
+      "w": 0.9589,
+      "street": "Mill St",
+      "hwy": false,
+      "terrain": "urban"
+    },
+    {
+      "id": 1,
+      "a": 0,
+      "b": 4,
+      "km": 0.4022,
+      "w": 0.9653,
+      "street": "1st Ave",
+      "hwy": false,
+      "terrain": "urban"
+    },
+    {
+      "id": 2,
+      "a": 1,
+      "b": 2,
+      "km": 0.3995,
+      "w": 0.9589,
+      "street": "Mill St",
+      "hwy": false,
+      "terrain": "urban"
+    },
+    {
+      "id": 3,
+      "a": 1,
+      "b": 5,
+      "km": 0.4022,
+      "w": 0.9653,
+      "street": "2nd Ave",
+      "hwy": false,
+      "terrain": "urban"
+    },
+    {
+      "id": 4,
+      "a": 2,
+      "b": 3,
+      "km": 0.3995,
+      "w": 0.9589,
+      "street": "Mill St",
+      "hwy": false,
+      "terrain": "urban"
+    },
+    {
+      "id": 5,
+      "a": 2,
+      "b": 6,
+      "km": 0.4022,
+      "w": 0.9653,
+      "street": "3rd Ave",
+      "hwy": false,
+      "terrain": "urban"
+    },
+    {
+      "id": 6,
+      "a": 3,
+      "b": 7,
+      "km": 0.4022,
+      "w": 0.9653,
+      "street": "4th Ave",
+      "hwy": false,
+      "terrain": "urban"
+    },
+    {
+      "id": 7,
+      "a": 4,
+      "b": 5,
+      "km": 0.3995,
+      "w": 0.9589,
+      "street": "Main St",
+      "hwy": false,
+      "terrain": "urban"
+    },
+    {
+      "id": 8,
+      "a": 4,
+      "b": 8,
+      "km": 0.4023,
+      "w": 0.9655,
+      "street": "1st Ave",
+      "hwy": false,
+      "terrain": "urban"
+    },
+    {
+      "id": 9,
+      "a": 5,
+      "b": 6,
+      "km": 0.3995,
+      "w": 0.9589,
+      "street": "Main St",
+      "hwy": false,
+      "terrain": "urban"
+    },
+    {
+      "id": 10,
+      "a": 5,
+      "b": 9,
+      "km": 0.4023,
+      "w": 0.9655,
+      "street": "2nd Ave",
+      "hwy": false,
+      "terrain": "urban"
+    },
+    {
+      "id": 11,
+      "a": 6,
+      "b": 7,
+      "km": 0.3995,
+      "w": 0.9589,
+      "street": "Main St",
+      "hwy": false,
+      "terrain": "urban"
+    },
+    {
+      "id": 12,
+      "a": 6,
+      "b": 10,
+      "km": 0.4023,
+      "w": 0.9655,
+      "street": "3rd Ave",
+      "hwy": false,
+      "terrain": "urban"
+    },
+    {
+      "id": 13,
+      "a": 7,
+      "b": 11,
+      "km": 0.4023,
+      "w": 0.9655,
+      "street": "4th Ave",
+      "hwy": false,
+      "terrain": "urban"
+    },
+    {
+      "id": 14,
+      "a": 8,
+      "b": 9,
+      "km": 0.3995,
+      "w": 0.9589,
+      "street": "Church St",
+      "hwy": false,
+      "terrain": "urban"
+    },
+    {
+      "id": 15,
+      "a": 9,
+      "b": 10,
+      "km": 0.3995,
+      "w": 0.9589,
+      "street": "Church St",
+      "hwy": false,
+      "terrain": "urban"
+    },
+    {
+      "id": 16,
+      "a": 10,
+      "b": 11,
+      "km": 0.3995,
+      "w": 0.9589,
+      "street": "Church St",
+      "hwy": false,
+      "terrain": "urban"
+    },
+    {
+      "id": 17,
+      "a": 12,
+      "b": 13,
+      "km": 7.3418,
+      "w": 5.5063,
+      "street": "Hwy 9",
+      "hwy": true,
+      "terrain": "highway"
+    },
+    {
+      "id": 18,
+      "a": 13,
+      "b": 14,
+      "km": 5.8733,
+      "w": 4.405,
+      "street": "Hwy 9",
+      "hwy": true,
+      "terrain": "highway"
+    },
+    {
+      "id": 19,
+      "a": 14,
+      "b": 15,
+      "km": 5.6636,
+      "w": 4.2477,
+      "street": "Hwy 9",
+      "hwy": true,
+      "terrain": "highway"
+    },
+    {
+      "id": 20,
+      "a": 15,
+      "b": 16,
+      "km": 8.3906,
+      "w": 6.2929,
+      "street": "Hwy 9",
+      "hwy": true,
+      "terrain": "highway"
+    },
+    {
+      "id": 21,
+      "a": 14,
+      "b": 1,
+      "km": 1.826,
+      "w": 2.1912,
+      "street": "2nd Ave (connector)",
+      "hwy": false,
+      "terrain": "rural"
+    },
+    {
+      "id": 22,
+      "a": 15,
+      "b": 3,
+      "km": 6.0315,
+      "w": 7.2378,
+      "street": "Industrial Rd",
+      "hwy": false,
+      "terrain": "rural"
+    },
+    {
+      "id": 23,
+      "a": 11,
+      "b": 17,
+      "km": 2.2109,
+      "w": 2.6531,
+      "street": "Riverside Rd",
+      "hwy": false,
+      "terrain": "rural"
+    },
+    {
+      "id": 24,
+      "a": 17,
+      "b": 18,
+      "km": 1.5514,
+      "w": 2.3272,
+      "street": "Old Mill Bridge",
+      "hwy": false,
+      "terrain": "bridge"
+    },
+    {
+      "id": 25,
+      "a": 18,
+      "b": 19,
+      "km": 1.116,
+      "w": 2.232,
+      "street": "School Rd",
+      "hwy": false,
+      "terrain": "unpaved"
+    },
+    {
+      "id": 26,
+      "a": 8,
+      "b": 21,
+      "km": 3.9078,
+      "w": 4.6894,
+      "street": "Sideroad 10",
+      "hwy": false,
+      "terrain": "rural"
+    },
+    {
+      "id": 27,
+      "a": 21,
+      "b": 20,
+      "km": 3.0095,
+      "w": 3.6114,
+      "street": "Concession 4",
+      "hwy": false,
+      "terrain": "rural"
+    },
+    {
+      "id": 28,
+      "a": 13,
+      "b": 22,
+      "km": 6.0245,
+      "w": 12.049,
+      "street": "Lake Rd",
+      "hwy": false,
+      "terrain": "unpaved"
+    },
+    {
+      "id": 29,
+      "a": 22,
+      "b": 20,
+      "km": 6.5085,
+      "w": 13.017,
+      "street": "Lake Rd North",
+      "hwy": false,
+      "terrain": "unpaved"
+    },
+    {
+      "id": 30,
+      "a": 16,
+      "b": 23,
+      "km": 6.3896,
+      "w": 7.6675,
+      "street": "Eastfield Line",
+      "hwy": false,
+      "terrain": "rural"
+    }
+  ],
+  "pois": [
+    {
+      "id": "P0",
+      "name": "Town Food Bank (synthetic)",
+      "kind": "hub",
+      "node": 5,
+      "lat": -1.196383,
+      "lng": 36.903594,
+      "address": "Main St & 2nd Ave"
+    },
+    {
+      "id": "P1",
+      "name": "Highway relief depot (synthetic)",
+      "kind": "hub",
+      "node": 15,
+      "lat": -1.213566,
+      "lng": 36.95391,
+      "address": "Hwy 9 km 3"
+    },
+    {
+      "id": "P2",
+      "name": "District Hospital (synthetic)",
+      "kind": "hospital",
+      "node": 7,
+      "lat": -1.196383,
+      "lng": 36.910782,
+      "address": "Main St & 4th Ave"
+    },
+    {
+      "id": "P3",
+      "name": "Riverside shelter (synthetic, bridge-only)",
+      "kind": "shelter",
+      "node": 18,
+      "lat": -1.18553,
+      "lng": 36.940433,
+      "address": "Riverside Village Centre"
+    },
+    {
+      "id": "P4",
+      "name": "Lakeview community hall (synthetic)",
+      "kind": "community",
+      "node": 20,
+      "lat": -1.145738,
+      "lng": 36.88203,
+      "address": "Lakeview Hamlet"
+    },
+    {
+      "id": "P5",
+      "name": "Eastfield school kitchen (synthetic, far)",
+      "kind": "community",
+      "node": 23,
+      "lat": -1.181913,
+      "lng": 37.061731,
+      "address": "Eastfield Crossroads"
+    },
+    {
+      "id": "P6",
+      "name": "Town soup kitchen (synthetic)",
+      "kind": "shelter",
+      "node": 2,
+      "lat": -1.2,
+      "lng": 36.907188,
+      "address": "Mill St & 3rd Ave"
+    }
+  ],
+  "hubs": [
+    {
+      "poiId": "P0",
+      "normal": 160,
+      "cold": 40
+    },
+    {
+      "poiId": "P1",
+      "normal": 90,
+      "cold": 0
+    }
+  ],
+  "trucks": [
+    {
+      "id": "V1",
+      "name": "Reefer 1",
+      "home": 5,
+      "refrigerated": true,
+      "capacity": 30,
+      "fuel": 100
+    },
+    {
+      "id": "V2",
+      "name": "Truck 2",
+      "home": 5,
+      "refrigerated": false,
+      "capacity": 50,
+      "fuel": 100
+    },
+    {
+      "id": "V3",
+      "name": "Truck 3",
+      "home": 15,
+      "refrigerated": false,
+      "capacity": 50,
+      "fuel": 100
+    },
+    {
+      "id": "V4",
+      "name": "Pickup 4",
+      "home": 15,
+      "refrigerated": false,
+      "capacity": 20,
+      "fuel": 60
+    }
+  ],
+  "terrain": [],
+  "sources": [
+    "Synthetic - generated by tools/gen_town_dataset.py"
+  ],
+  "disclosure": "Synthetic test dataset: fictional town, roads, depots and resources. Not a real place. Bridge edge id 24 is the single access to Riverside.",
+  "_test_notes": {
+    "bridge_edge_id": 24,
+    "unreachable_if_bridge_closed": [
+      "P3"
+    ],
+    "reroute_village": "P4 (Sideroad 10 vs Lake Rd)",
+    "far_site": "P5",
+    "no_cold_depot": "P1"
+  }
+}
