@@ -26,6 +26,9 @@ const map = L.map("map").setView(
     [43.657, -79.387], 14
 );
 
+// Separate layer for highlighting delivery routes
+const dashboardRouteLayer = L.layerGroup().addTo(map);
+
 // OpenStreetMap background
 L.tileLayer(
     "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -74,6 +77,7 @@ async function loadMap() {
         roadLayer.clearLayers();
         supplierLayer.clearLayers();
         requesterLayer.clearLayers();
+        dashboardRouteLayer.clearLayers();
 
         // Build dictionary of node ID -> node
         nodeLookup = {};
@@ -251,6 +255,7 @@ async function loadDatasetOptions() {
 
     // Reload the map using the active dataset
     await loadMap();
+    await loadOperationsDashboard();
 }
 
 
@@ -400,61 +405,406 @@ document.getElementById("datasetUploadForm")
         }
     });
 
-    
-const dispatchBtn =
-    document.getElementById("dispatchBtn");
 
-dispatchBtn.addEventListener("click", async () => {
+
+function highlightDeliveryRoute(savedRoute) {
+
+    dashboardRouteLayer.clearLayers();
+
+    let nodeIds = savedRoute;
+
+    // Support routes stored as JSON text or JSONB arrays
+    if (typeof nodeIds === "string") {
+        try {
+            nodeIds = JSON.parse(nodeIds);
+        } catch (error) {
+            alert("Invalid route format");
+            return;
+        }
+    }
+
+    if (!Array.isArray(nodeIds) || nodeIds.length === 0) {
+        alert("No route saved for this delivery");
+        return;
+    }
+
+    const coordinates = [];
+
+    for (const id of nodeIds) {
+        const node = nodeLookup[id];
+
+        if (!node) {
+            alert(
+                "Route contains a node not in the current map"
+            );
+            return;
+        }
+
+        coordinates.push([node.lat, node.lng]);
+    }
+
+    const line = L.polyline(coordinates, {
+        color: "#16a34a",
+        weight: 7,
+        opacity: 0.9
+    });
+
+    line.addTo(dashboardRouteLayer);
+
+    if (coordinates.length > 1) {
+        map.fitBounds(line.getBounds(), {
+            padding: [40, 40]
+        });
+    } else {
+        map.setView(coordinates[0], 15);
+    }
+}
+
+
+async function postOperationsAction(url, button, label) {
 
     const message =
         document.getElementById("dispatchMessage");
 
-    dispatchBtn.disabled = true;
-    message.textContent = "Processing deliveries...";
+    button.disabled = true;
+    message.textContent = label + "...";
 
     try {
-        const response = await fetch(
-            "/api/dispatch",
-            { method: "POST" }
-        );
+        const response = await fetch(url, {
+            method: "POST"
+        });
 
         const contentType =
             response.headers.get("content-type") || "";
 
         if (!contentType.includes("application/json")) {
-            throw new Error(
-                `Server error HTTP ${response.status}`
-            );
+            throw new Error(`Server error ${response.status}`);
         }
 
-        const data = await response.json();
+        const result = await response.json();
 
         if (!response.ok) {
             throw new Error(
-                data.error || "Dispatch failed"
+                result.error || "Operation failed"
             );
         }
 
-        message.textContent =
-            `${data.assignments_created} delivery ` +
-            `assignments created.`;
+        message.textContent = result.message;
 
-        console.table(data.assignments);
-
-        // Refresh any existing priority table
-        if (typeof loadTicketQueue === "function") {
-            await loadTicketQueue();
-        }
-
-        await loadMap();
+        await loadOperationsDashboard();
 
     } catch (error) {
         console.error(error);
         message.textContent = error.message;
 
     } finally {
-        dispatchBtn.disabled = false;
+        button.disabled = false;
     }
+}
+
+
+
+async function loadOperationsDashboard() {
+    const response = await fetch(
+        "/api/operations/overview",
+        { cache: "no-store" }
+    );
+
+    if (!response.ok) {
+        throw new Error(
+            `Dashboard failed: HTTP ${response.status}`
+        );
+    }
+
+    const data = await response.json();
+
+    // Ignore responses from previously selected regions
+    if (data.dataset_id !== activeDataset) {
+        return;
+    }
+
+    // Update overview statistics
+    document.getElementById("statTickets").textContent =
+        data.statistics.active_tickets;
+
+    document.getElementById("statDeliveries").textContent =
+        data.statistics.active_deliveries;
+
+    document.getElementById("statVehicles").textContent =
+        data.statistics.available_vehicles;
+
+    document.getElementById("statFood").textContent =
+        data.statistics.available_food;
+
+    // Update tables and resource panels
+    renderTickets(data.tickets);
+    renderDeliveries(data.deliveries);
+    renderSuppliers(data.suppliers);
+    renderVehicles(data.vehicles);
+}
+
+
+function makeCell(value) {
+    const td = document.createElement("td");
+    td.textContent = value ?? "—";
+    return td;
+}
+
+
+function formatDeadline(value) {
+    if (!value) return "—";
+
+    return new Date(value).toLocaleString([], {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit"
+    });
+}
+
+
+// 1. Emergency Priority Queue
+function renderTickets(tickets) {
+    const body = document.getElementById("ticketsBody");
+    body.replaceChildren();
+
+    tickets.forEach(ticket => {
+        const row = document.createElement("tr");
+
+        const values = [
+            ticket.ticket_id,
+            ticket.requester,
+            ticket.people_affected,
+            ticket.servings_requested,
+            formatDeadline(ticket.deadline),
+            ticket.priority_score == null
+                ? "Pending"
+                : Number(ticket.priority_score).toFixed(2),
+            ticket.status
+        ];
+
+        values.forEach(value => {
+            row.appendChild(makeCell(value));
+        });
+
+        body.appendChild(row);
+    });
+
+    if (tickets.length === 0) {
+        body.appendChild(
+            emptyRow(7, "No tickets in this region")
+        );
+    }
+}
+
+
+// 2. Assigned Deliveries
+function renderDeliveries(deliveries) {
+    const body = document.getElementById("deliveriesBody");
+    body.replaceChildren();
+
+    deliveries.forEach(delivery => {
+        const row = document.createElement("tr");
+
+        const values = [
+            delivery.delivery_id,
+            delivery.ticket_id,
+            delivery.supplier,
+            delivery.vehicle_id,
+            delivery.servings_assigned,
+            Number(delivery.route_distance_km ?? 0)
+                .toFixed(2) + " km",
+            delivery.status
+        ];
+
+        values.forEach(value => {
+            row.appendChild(makeCell(value));
+        });
+
+        // Show route button
+        const routeCell = document.createElement("td");
+        const button = document.createElement("button");
+
+        button.type = "button";
+        button.textContent = "Show Route";
+
+        button.addEventListener("click", () => {
+            highlightDeliveryRoute(delivery.route);
+        });
+
+        routeCell.appendChild(button);
+        row.appendChild(routeCell);
+        body.appendChild(row);
+    });
+
+    if (deliveries.length === 0) {
+        body.appendChild(
+            emptyRow(8, "No deliveries assigned")
+        );
+    }
+}
+
+
+// 3. Supplier Inventory
+function renderSuppliers(suppliers) {
+    const container =
+        document.getElementById("supplierCards");
+
+    container.replaceChildren();
+
+    suppliers.forEach(supplier => {
+        const card = document.createElement("div");
+        card.className = "resource-card";
+
+        const availableNormal =
+            Number(supplier.normal_stock) -
+            Number(supplier.reserved_normal);
+
+        const availableCold =
+            Number(supplier.cold_stock) -
+            Number(supplier.reserved_cold);
+
+        const title = document.createElement("strong");
+        title.textContent = supplier.name;
+
+        const details = document.createElement("p");
+        details.textContent =
+            `Normal: ${availableNormal} | ` +
+            `Refrigerated: ${availableCold}`;
+
+        card.append(title, details);
+        container.appendChild(card);
+    });
+}
+
+
+// 4. Vehicle Fleet
+
+function renderVehicles(vehicles) {
+    const container =
+        document.getElementById("vehicleCards");
+
+    container.replaceChildren();
+
+    vehicles.forEach(vehicle => {
+        const card = document.createElement("div");
+        card.className = "resource-card vehicle-card";
+
+        const status = vehicle.status?.toLowerCase();
+
+        // Set card color based on vehicle status
+        if (status === "available") {
+            card.classList.add("vehicle-available");
+        } else if (status === "reserved") {
+            card.classList.add("vehicle-reserved");
+        } else {
+            card.classList.add("vehicle-other");
+        }
+
+        const title = document.createElement("strong");
+        title.textContent =
+            vehicle.name || vehicle.vehicle_id;
+
+        const details = document.createElement("p");
+        details.textContent =
+            `Status: ${vehicle.status} | ` +
+            `Capacity: ${vehicle.capacity} | ` +
+            `Refrigerated: ${
+                vehicle.refrigerated ? "Yes" : "No"
+            }`;
+
+        card.append(title, details);
+        container.appendChild(card);
+    });
+}
+
+
+
+// Helper for empty tables
+function emptyRow(columns, message) {
+    const row = document.createElement("tr");
+    const cell = document.createElement("td");
+
+    cell.colSpan = columns;
+    cell.textContent = message;
+    cell.className = "empty-table";
+
+    row.appendChild(cell);
+    return row;
+}
+
+
+function highlightDeliveryRoute(savedRoute) {
+
+    dashboardRouteLayer.clearLayers();
+
+    let nodeIds = savedRoute;
+
+    if (typeof nodeIds === "string") {
+        try {
+            nodeIds = JSON.parse(nodeIds);
+        } catch {
+            alert("Invalid saved route");
+            return;
+        }
+    }
+
+    if (!Array.isArray(nodeIds) || !nodeIds.length) {
+        alert("No route available");
+        return;
+    }
+
+    const coordinates = [];
+
+    for (const id of nodeIds) {
+        const node = nodeLookup[id];
+
+        if (!node) {
+            alert(`Node ${id} not found on current map`);
+            return;
+        }
+
+        coordinates.push([node.lat, node.lng]);
+    }
+
+    const line = L.polyline(coordinates, {
+        color: "#16a34a",
+        weight: 6,
+        opacity: 0.9
+    }).addTo(dashboardRouteLayer);
+
+    if (coordinates.length > 1) {
+        map.fitBounds(line.getBounds(), {
+            padding: [40, 40]
+        });
+    } else {
+        map.setView(coordinates[0], 15);
+    }
+}
+
+
+const recalculateBtn =
+    document.getElementById("recalculateBtn");
+
+const dispatchBtn =
+    document.getElementById("dispatchBtn");
+
+
+recalculateBtn.addEventListener("click", () => {
+    postOperationsAction(
+        "/api/priorities/recalculate",
+        recalculateBtn,
+        "Calculating priorities"
+    );
+});
+
+
+dispatchBtn.addEventListener("click", () => {
+    postOperationsAction(
+        "/api/dispatch",
+        dispatchBtn,
+        "Dispatching tickets"
+    );
 });
 
 
@@ -463,3 +813,13 @@ loadDatasetOptions().catch(error => {
     console.error("Initialization failed:", error);
     datasetMessage.textContent = error.message;
 });
+
+// Initial dashboard load
+loadOperationsDashboard().catch(console.error);
+
+// Refresh displayed database values every 5 seconds
+setInterval(() => {
+    if (activeDataset) {
+        loadOperationsDashboard().catch(console.error);
+    }
+}, 5000);

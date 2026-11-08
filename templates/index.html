@@ -34,6 +34,32 @@
     <main>
         <h2>System Overview</h2>
 
+        <section class="overview-section">
+            <h2>Operations Overview</h2>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span>Active Tickets</span>
+                    <strong id="statTickets">—</strong>
+                </div>
+
+                <div class="stat-card">
+                    <span>Active Deliveries</span>
+                    <strong id="statDeliveries">—</strong>
+                </div>
+
+                <div class="stat-card">
+                    <span>Available Vehicles</span>
+                    <strong id="statVehicles">—</strong>
+                </div>
+
+                <div class="stat-card">
+                    <span>Available Food</span>
+                    <strong id="statFood">—</strong>
+                </div>
+            </div>
+        </section>
+
         <section class="map-section">
             <h2>Emergency Dispatch Map</h2>
             <div id="map"></div>
@@ -44,7 +70,80 @@
             </div>
         </section>
 
-            
+           
+        <section class="dashboard-section">
+            <div class="section-heading">
+                <h2>Emergency Priority Queue</h2>
+
+                <div>
+                    <button id="recalculateBtn" type="button">
+                        Recalculate Priorities
+                    </button>
+
+                    <button id="dispatchBtn" type="button">
+                        Dispatch Tickets
+                    </button>
+                </div>
+            </div>
+
+            <p id="dispatchMessage" role="status"></p>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ticket</th>
+                            <th>Requester</th>
+                            <th>People</th>
+                            <th>Servings</th>
+                            <th>Deadline</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ticketsBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="dashboard-section">
+            <h2>Deliveries</h2>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Delivery</th>
+                            <th>Ticket</th>
+                            <th>Supplier</th>
+                            <th>Vehicle</th>
+                            <th>Servings</th>
+                            <th>Distance</th>
+                            <th>Status</th>
+                            <th>Route</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deliveriesBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <div class="resource-grid">
+
+            <section class="dashboard-section">
+                <h2>Supplier Inventory</h2>
+                <div id="supplierCards"></div>
+            </section>
+
+            <section class="dashboard-section">
+                <h2>Vehicle Fleet</h2>
+                <div id="vehicleCards"></div>
+            </section>
+
+        </div>
+
+        <p id="dashboardMessage" role="status"></p>
+        
         <section class="dispatch-section">
 
             <h2>Emergency Dispatch</h2>

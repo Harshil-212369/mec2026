@@ -378,3 +378,154 @@ header nav a:hover {
     font-weight: 600;
     margin-top: 15px;
 }
+
+
+/* OPERATIONS DASHBOARD */
+
+.overview-section,
+.dashboard-section {
+    background: white;
+    padding: 22px;
+    margin: 24px 0;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+
+.stat-card {
+    background: #f1f5f9;
+    border-radius: 9px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.stat-card span {
+    font-size: 14px;
+    color: #64748b;
+}
+
+.stat-card strong {
+    font-size: 30px;
+    color: #17365d;
+}
+
+.section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.dashboard-section table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.dashboard-section th,
+.dashboard-section td {
+    padding: 12px;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.dashboard-section th {
+    background: #17365d;
+    color: white;
+}
+
+.dashboard-section tbody tr:hover {
+    background: #f8fafc;
+}
+
+.resource-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.resource-card {
+    padding: 15px;
+    margin-bottom: 10px;
+    background: #f1f5f9;
+    border-radius: 8px;
+}
+
+.resource-card p {
+    margin: 8px 0 0;
+    font-size: 14px;
+    color: #475569;
+}
+
+.route-button {
+    background: #059669;
+    color: white;
+    padding: 8px 12px;
+}
+
+.empty-table {
+    text-align: center !important;
+    color: #64748b;
+}
+
+@media (max-width: 850px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .resource-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+
+/* Vehicle status colors */
+
+.vehicle-card {
+    border-left: 5px solid;
+    transition: background-color 0.2s ease;
+}
+
+/* Available: Green */
+.vehicle-available {
+    background-color: #dcfce7;
+    border-left-color: #16a34a;
+}
+
+.vehicle-available strong {
+    color: #166534;
+}
+
+/* Reserved: Red */
+.vehicle-reserved {
+    background-color: #fee2e2;
+    border-left-color: #dc2626;
+}
+
+.vehicle-reserved strong {
+    color: #991b1b;
+}
+
+/* Other statuses: Yellow */
+.vehicle-other {
+    background-color: #fef9c3;
+    border-left-color: #ca8a04;
+}
+
+.vehicle-other strong {
+    color: #854d0e;
+}

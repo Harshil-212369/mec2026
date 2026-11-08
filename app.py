@@ -648,5 +648,165 @@ def run_dispatch():
         }), 500
 
 
+
+from contextlib import closing
+from psycopg2.extras import RealDictCursor
+
+
+@app.route("/api/operations/overview")
+@operations_api_required
+def operations_overview():
+
+    try:
+        with closing(get_connection()) as conn:
+            with conn.cursor(
+                cursor_factory=RealDictCursor
+            ) as cursor:
+
+                # Get selected region
+                cursor.execute("""
+                    SELECT active_dataset_id
+                    FROM app_settings
+                    WHERE setting_id = 1
+                """)
+
+                setting = cursor.fetchone()
+
+                if setting is None:
+                    return jsonify({
+                        "error": "No active region"
+                    }), 500
+
+                dataset_id = setting["active_dataset_id"]
+
+                # Tickets, ranked by priority
+                cursor.execute("""
+                    SELECT
+                        t.ticket_id,
+                        t.req_id,
+                        r.name AS requester,
+                        t.servings_requested,
+                        t.people_affected,
+                        t.refrigerated,
+                        t.deadline,
+                        t.priority_score,
+                        t.status,
+                        t.created_at
+                    FROM tickets t
+                    JOIN requesters r
+                      ON t.dataset_id = r.dataset_id
+                     AND t.req_id = r.req_id
+                    WHERE t.dataset_id = %s
+                    ORDER BY
+                        t.priority_score DESC NULLS LAST,
+                        t.deadline ASC,
+                        t.created_at ASC,
+                        t.ticket_id ASC
+                """, (dataset_id,))
+
+                tickets = cursor.fetchall()
+
+                # Deliveries with routes
+                cursor.execute("""
+                    SELECT
+                        d.delivery_id,
+                        d.ticket_id,
+                        d.supp_id,
+                        s.name AS supplier,
+                        d.vehicle_id,
+                        d.servings_assigned,
+                        d.route,
+                        d.route_weight,
+                        d.route_distance_km,
+                        d.status
+                    FROM deliveries d
+                    JOIN suppliers s
+                      ON d.dataset_id = s.dataset_id
+                     AND d.supp_id = s.supp_id
+                    WHERE d.dataset_id = %s
+                    ORDER BY d.delivery_id DESC
+                """, (dataset_id,))
+
+                deliveries = cursor.fetchall()
+
+                # Vehicle fleet
+                cursor.execute("""
+                    SELECT
+                        vehicle_id,
+                        name,
+                        supp_id,
+                        current_node,
+                        capacity,
+                        refrigerated,
+                        fuel,
+                        status
+                    FROM vehicles
+                    WHERE dataset_id = %s
+                    ORDER BY vehicle_id
+                """, (dataset_id,))
+
+                vehicles = cursor.fetchall()
+
+                # Supplier inventory
+                cursor.execute("""
+                    SELECT
+                        supp_id,
+                        name,
+                        normal_stock,
+                        cold_stock,
+                        reserved_normal,
+                        reserved_cold
+                    FROM suppliers
+                    WHERE dataset_id = %s
+                    ORDER BY supp_id
+                """, (dataset_id,))
+
+                suppliers = cursor.fetchall()
+
+        active_states = {
+            "Open", "Prioritized", "Resource Assigned",
+            "In Progress", "Re-Routing", "Delayed"
+        }
+
+        active_delivery_states = {
+            "Assigned", "In Progress", "Delayed"
+        }
+
+        statistics = {
+            "active_tickets": sum(
+                t["status"] in active_states
+                for t in tickets
+            ),
+            "active_deliveries": sum(
+                d["status"] in active_delivery_states
+                for d in deliveries
+            ),
+            "available_vehicles": sum(
+                v["status"] == "Available"
+                for v in vehicles
+            ),
+            "available_food": sum(
+                (s["normal_stock"] - s["reserved_normal"])
+                + (s["cold_stock"] - s["reserved_cold"])
+                for s in suppliers
+            )
+        }
+
+        return jsonify({
+            "dataset_id": dataset_id,
+            "statistics": statistics,
+            "tickets": tickets,
+            "deliveries": deliveries,
+            "vehicles": vehicles,
+            "suppliers": suppliers
+        })
+
+    except Exception:
+        app.logger.exception("Dashboard load failed")
+        return jsonify({
+            "error": "Could not load dashboard"
+        }), 500
+
+
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
