@@ -219,13 +219,25 @@ def from_json(dataset_path: str | Path, scenario_path: str | Path | None = None,
     database holds. Optional scenario file adds tickets, timed events and invalid tickets."""
     dataset_path = Path(dataset_path)
     ds = json.loads(dataset_path.read_text(encoding="utf-8"))
+    sc, source = None, f"json:{dataset_path.name}"
+    if scenario_path is not None:
+        scenario_path = Path(scenario_path)
+        sc = json.loads(scenario_path.read_text(encoding="utf-8"))
+        source += f"+{scenario_path.name}"
+    return from_data(ds, sc, source, sim_start)
+
+
+def from_data(ds: dict, sc: dict | None = None, source: str = "data",
+              sim_start: datetime = SIM_START) -> InputBundle:
+    """Dataset dict in the organizers' JSON structure (+ optional scenario dict) -> table rows.
+    Used for files (from_json) and for generated cities (core/random_dataset.py)."""
     report: list[str] = []
     dsid = ds["id"]
     pois = {p["id"]: p for p in ds["pois"]}
     hub_ids = [h["poiId"] for h in ds["hubs"]]
     missing = [h for h in hub_ids if h not in pois]
     if missing:
-        raise InputError(f"{dataset_path.name}: hubs {missing} have no matching entry in pois")
+        raise InputError(f"dataset {dsid}: hubs {missing} have no matching entry in pois")
     node_to_hub: dict[int, str] = {}
     for h in hub_ids:
         node_to_hub.setdefault(pois[h]["node"], h)
@@ -263,17 +275,14 @@ def from_json(dataset_path: str | Path, scenario_path: str | Path | None = None,
                               "capacity": tr["capacity"], "refrigerated": tr["refrigerated"],
                               "fuel": tr["fuel"] if "fuel" in tr else 100, "status": "Available"})
 
-    bundle = InputBundle(f"json:{dataset_path.name}", t, report=report)
-    if scenario_path is not None:
-        scenario_path = Path(scenario_path)
-        sc = json.loads(scenario_path.read_text(encoding="utf-8"))
+    bundle = InputBundle(source, t, report=report)
+    if sc is not None:
         if sc.get("dataset_id") not in (None, dsid):
-            report.append(f"[WARN] {scenario_path.name} was written for {sc['dataset_id']!r}, "
+            report.append(f"[WARN] scenario was written for {sc['dataset_id']!r}, "
                           f"dataset is {dsid!r}: ids used as-is")
         t["tickets"] = [_scenario_ticket(tk, i, dsid, sim_start) for i, tk in enumerate(sc.get("tickets", []), 1)]
         bundle.extra_tickets = [_scenario_ticket(tk, None, dsid, sim_start) for tk in sc.get("invalid_tickets", [])]
         bundle.scenario_events = [dict(ev) for ev in sc.get("events", [])]
-        bundle.source += f"+{scenario_path.name}"
     return bundle
 
 

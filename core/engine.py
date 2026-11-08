@@ -121,7 +121,7 @@ class Engine:
         dsid, tables = select_dataset(bundle, dataset_id)
         tables = copy.deepcopy(tables)
         created = [r["created_at"] for r in tables["tickets"] if isinstance(r.get("created_at"), datetime)]
-        start = SIM_START if bundle.source.startswith("json") or not created else min(created)
+        start = SIM_START if bundle.source.startswith(("json", "random")) or not created else min(created)
         return cls(dsid, tables, router_factory, start=start, policy=policy,
                    scenario_events=bundle.scenario_events, scenario_start=SIM_START)
 

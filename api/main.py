@@ -21,8 +21,9 @@ from fastapi.responses import FileResponse, JSONResponse
 
 from core.constants import POLICIES
 from core.engine import Engine
+from core.random_dataset import generate
 from core.routing import get_router_factory
-from core.tables import REPO, InputError, from_json, from_pg_dump, from_postgres
+from core.tables import REPO, InputError, from_data, from_json, from_pg_dump, from_postgres
 
 DATA = REPO / "data"
 WEB = REPO / "web"
@@ -76,6 +77,13 @@ def load(spec: dict) -> Engine:
             bundle = from_pg_dump(_in_repo(spec["path"]))
         elif source == "postgres":
             bundle = from_postgres()
+        elif source == "random":   # no input file at all: generated city + tickets + disruptions
+            seed = spec.get("seed")
+            if seed is not None and (not isinstance(seed, int) or isinstance(seed, bool) or seed < 0):
+                raise HTTPException(400, "seed must be a whole number >= 0")
+            ds, sc = generate(seed)
+            spec = {**spec, "seed": int(ds["id"].split("-", 1)[1])}
+            bundle = from_data(ds, sc, f"random:{ds['id']}")
         else:
             raise HTTPException(400, f"unknown source {source!r}")
         engine = Engine.from_bundle(bundle, STATE.router_factory, spec.get("dataset_id"),
@@ -167,6 +175,14 @@ async def datasets_load(spec: dict = Body(...)):
     async with STATE.lock:
         eng = load(spec)
         return {"dataset_id": eng.dataset_id, "notes": eng.notes, "router": STATE.router_name}
+
+
+@app.post("/datasets/random")
+async def datasets_random(body: dict = Body(default={})):
+    """Generate a random city in the dataset structure (optional {"seed": n}) and load it."""
+    async with STATE.lock:
+        eng = load({"source": "random", "seed": body.get("seed")})
+        return {"dataset_id": eng.dataset_id, "seed": STATE.spec["seed"], "notes": eng.notes}
 
 
 @app.get("/state")
