@@ -20,6 +20,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 
 from core.constants import POLICIES
+from core.db_sync import DbSync
 from core.engine import Engine
 from core.random_dataset import generate
 from core.routing import get_router_factory
@@ -28,6 +29,7 @@ from core.tables import REPO, InputError, from_data, from_json, from_pg_dump, fr
 DATA = REPO / "data"
 WEB = REPO / "web"
 TICK_SECONDS = 1.0   # real seconds per sim tick; each tick advances `speed` sim-minutes
+SYNC_EVERY_TICKS = 3  # write-back to Aadil's database every 3 s (only with --write-back)
 
 
 class AppState:
@@ -37,6 +39,7 @@ class AppState:
         self.router_factory, self.router_name = get_router_factory()
         self.running = False
         self.started = False
+        self.sync: DbSync | None = None
         self.speed = 1.0
         self.lock = asyncio.Lock()
         self.clients: list[tuple[asyncio.AbstractEventLoop, asyncio.Queue]] = []
@@ -94,7 +97,13 @@ def load(spec: dict) -> Engine:
         raise HTTPException(400, str(exc)) from exc
     engine.notes[:0] = bundle.report
     engine.bus.subscribe("*", _on_event)
+    sync = None
+    if spec.get("write_back"):
+        if source != "postgres":
+            raise HTTPException(400, "write_back needs source = postgres")
+        sync = DbSync(engine)
     STATE.engine, STATE.spec, STATE.running, STATE.started = engine, dict(spec), False, False
+    STATE.sync = sync
     _send_all({"type": "dataset-loaded", "dataset_id": engine.dataset_id, "ts": _iso(engine.now), "data": spec})
     return engine
 
@@ -121,16 +130,27 @@ def state_view() -> dict:
     }
     snap["sim"] = {"running": STATE.running, "speed": STATE.speed, "router": STATE.router_name,
                    "source": STATE.spec, "elapsed_min": (eng.now - eng.start).total_seconds() / 60}
+    snap["sim"]["write_back"] = None if STATE.sync is None else {
+        "flushes": STATE.sync.flushes, "errors": STATE.sync.errors[-3:]}
     snap["notes"] = list(eng.notes)
     return snap
 
 
 async def _sim_loop() -> None:
+    tick = 0
     while True:
         await asyncio.sleep(TICK_SECONDS)
+        tick += 1
+        batch, sync = None, None
         async with STATE.lock:
             if STATE.running and STATE.engine is not None:
                 _eng().advance(STATE.speed)
+            if STATE.sync is not None and tick % SYNC_EVERY_TICKS == 0:
+                _eng()
+                sync = STATE.sync
+                batch = sync.collect()           # fast, under the lock
+        if batch is not None:
+            await asyncio.to_thread(sync.flush, batch)   # network I/O outside the lock
 
 
 @asynccontextmanager
